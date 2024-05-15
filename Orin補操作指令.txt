@@ -1,0 +1,108 @@
+下載github檔案
+進入https://github.com/open-mmlab/mmdeploy/blob/main/docs/zh_cn/01-how-to-build/jetsons.md
+開始跟著操作
+
+
+1.我已經有用好的uniAD 所以複製他一個新的環境
+2.# purge existing
+	sudo apt-get purge cmake
+	sudo snap remove cmake
+
+	# install prebuilt binary
+	export CMAKE_VER=3.23.1
+	export ARCH=aarch64
+	wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VER}/cmake-${CMAKE_VER}-linux-${ARCH}.sh
+	chmod +x cmake-${CMAKE_VER}-linux-${ARCH}.sh
+	sudo ./cmake-${CMAKE_VER}-linux-${ARCH}.sh --prefix=/usr --skip-license
+	cmake --version
+
+3.python -c "import tensorrt; print(tensorrt.__version__)"
+	因為我有抓到tensorrt的版本，所以就沒做cp -r /usr/lib/python${PYTHON_VERSION}/dist-packages/tensorrt* ~/archiconda3/envs/mmdeploy/lib/python	${PYTHON_VERSION}/site-packages/
+
+
+4.echo -e '\n# set environment variable for TensorRT' >> ~/.bashrc
+5.echo 'export TENSORRT_DIR=/usr/include/aarch64-linux-gnu' >> ~/.bashrc
+6.source ~/.bashrc
+7.conda activate bevformer_orin
+8.sudo apt-get install -y libssl-dev
+	出現E: Failed to fetch http://ports.ubuntu.com/ubuntu-ports/pool/main/o/openssl/libssl-dev_1.1.1f-1ubuntu2.20_arm64.deb  404  Not Found [IP: 	185.125.190.36 80] E: Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?  錯誤
+
+9.python -m pip install onnx==1.10.0
+10.sudo apt-get install -y pkg-config libhdf5-100 libhdf5-dev
+	出現:ackage libhdf5-100 is not available, but is referred to by another package. 錯誤
+
+11.pip install versioned-hdf5 pycuda
+12.git clone https://github.com/open-mmlab/mmdeploy.git
+13.cd mmdeploy
+14.git checkout v0.10.0
+15.git clone https://github.com/NVIDIA/cub.git third_party/cub
+16.cd third_party/cub
+17.git checkout c3cceac115
+18.cd ..
+19.git clone https://github.com/pybind/pybind11.git pybind11
+20.cd pybind11
+21.git checkout 70a58c5
+22.cd mmdeploy
+23.export MMDEPLOY_DIR=$(pwd)
+24.mkdir -p build && cd build
+	cmake .. -DMMDEPLOY_TARGET_BACKENDS="trt"
+	make -j$(nproc) && make install
+
+25.cd ${MMDEPLOY_DIR}
+26.pip install -v -e .
+
+27.cd ${PROJECT_DIR}/TensorRT/build
+	cmake .. -DCMAKE_TENSORRT_PATH=/usr/include/aarch64-linux-gnu
+	make -j$(nproc)
+	make install
+	出現錯誤:fatal error: cuda_runtime.h: No such file or directory
+	解1
+	(沒用)試試看裝github bev_tensorrt作者提供的requirment.txt，步驟跳28(實測沒用，沒有解決)
+	解2
+	(沒用)cmake .. -DCMAKE_TENSORRT_PATH=/usr/local/cuda-11.4/targets/aarch64-linux/include
+	(有用)解3
+	export CPATH=/usr/local/cuda-11.4/targets/aarch64-linux/include:$CPATH
+	source ~/.bashrc
+	cmake .. -DCMAKE_TENSORRT_PATH=/usr/include/aarch64-linux-gnu
+	make -j$(nproc) && make install
+
+28.pip install -r requirements.txt
+	出現錯誤:netron的版本錯誤
+		改版本即可解決
+	出現錯誤:pytorch-quantization安裝失敗
+		改成這個指令:pip install --no-cache-dir --index-url https://pypi.nvidia.com --index-url https://pypi.org/simple pytorch-quantization==2.1.3
+	出現錯誤:ERROR: Could not build wheels for pycocotools, llvmlite, which is required to install pyproject.toml-based projects
+		我發現我已經有numba了 暫時不理
+
+29.sh samples/test_trt_ops.sh
+	出現錯誤:AttributeError: module 'numpy' has no attribute 'int'.
+		安裝Numpy==1.22
+	出現錯誤:No FCL -- collision checking will not work
+		解法:不理他
+	出現錯誤:NumbaDeprecationWarning: The 'nopython' keyword argument was not supplied to the 'numba.jit' decorator. The implicit default value for this 		argument is currently False, but it will be changed to True in Numba 0.59.0. See 			https://numba.readthedocs.io/en/stable/reference/deprecation.html#deprecation-of-object-mode-fall-back-behaviour-when-using-jit for details
+	出現錯誤:UserWarning: A NumPy version >=1.16.5 and <1.23.0 is required for this version of SciPy (detected version 1.23.5 warnings.warn(f"A NumPy 
+	version >={np_minversion} and <{np_maxversion}"
+	出現錯誤:ERROR
+		解法: 參考https://github.com/DerryHub/BEVFormer_tensorrt/issues/47
+			把engine.get_tensor_dtype(binding)和engine.get_tensor_mode(binding)
+			改成
+			engine.get_binding_dtype(binding)和engine.binding_is_input(binding)
+			然後if判斷函式也要改 可以參考det2trt的utils的tensorrt.py裡的allocate_buffers()函式 他有舊版的資料
+	
+
+30.sh samples/bevformer/small/pth_evaluate.sh -d 0
+
+31.sh samples/bevformer/small/pth2onnx.sh -d 0
+32.sh samples/bevformer/base/onnx2trt.sh -d 
+	出現錯誤nan_to_num 的錯誤
+	解法:更改det2trt/models/modules/encoder.py 的第69行
+	將bev_mask=torch.nan_to_num(bev_mask).int()
+	改成
+	#bev_mask=torch.nan_to_num(bev_mask).int()
+	bev_mask=bev_mask.int()
+	
+
+
+
+
+

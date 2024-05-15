@@ -1,0 +1,4 @@
+thop==0.1.1.post2209072238
+nvidia-pyindex
+--extra-index-url https://pypi.ngc.nvidia.com
+--extra-index-url https://pypi.tuna.tsinghua.edu.cn/simple

@@ -1,0 +1,93 @@
+附註：
+
+記得開啟tools/bevformer/evaluate_trt.py檔案
+檢查要測試的資料集市什麼
+1.測試test資料集不需要開啟指標評估（因為沒有真實資料所以評估不了）
+2.測試val資料集記得開啟指標評估
+
+
+當要測試自己切的val.pkl時 記得要更改nuscenes_eval.py裡的load_gt function
+我有設計一個 index_count參數 可以用來過濾要取val(6019筆）多少筆資料, 若不用if就是全取
+當要測試原版val.pkl 就把if馬掉
+
+
+
+##########################################################即時顯示預測結果############################################
+sh samples/bevformer/small/trt_evaluate_int8_structure_prune_vis_show.sh -d 0
+
+
+
+##################################測試原架構模型(pth)
+sh samples/bevformer/small/pth_evaluate.sh -d 0
+
+sh samples/bevformer/base/pth_evaluate.sh -d 0
+
+##################################測試原架構模型（trt)
+sh samples/bevformer/small/trt_evaluate.sh -d 0
+
+
+#################################轉換結構化structure_prune_retrain_epoch_15模型 -->onnx
+sh samples/bevformer/small/pth2onnx_structure_prune.sh -d 0
+
+
+##################################轉換結構化structure_prune_retrain_epoch_15模型 onnx-->trt
+FP32
+sh samples/bevformer/small/onnx2trt_structure_prune.sh -d 0
+
+FP16
+sh samples/bevformer/small/onnx2trt_fp16_structure_prune.sh -d 0
+
+Int8+FP32
+sh samples/bevformer/small/onnx2trt_int8_structure_prune.sh -d 0
+
+Int8+FP16
+sh samples/bevformer/small/onnx2trt_int8_fp16_structure_prune.sh -d 0
+
+
+##################################測試結構化structure_prune_retrain_epoch_15模型
+FP32
+sh samples/bevformer/small/trt_evaluate_structure_prune.sh -d 0
+
+FP16
+sh samples/bevformer/small/trt_evaluate_fp16_structure_prune.sh -d 0
+
+Int8+FP32
+sh samples/bevformer/small/trt_evaluate_int8_structure_prune.sh -d 0
+
+Int8+FP16
+sh samples/bevformer/small/trt_evaluate_int8_fp16_structure_prune.sh -d 0
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+#################################轉換任意結構化any_structure_pruned_model5_finetune_11epoch模型 -->onnx
+sh samples/bevformer/small/pth2onnx_any_structure_prune.sh -d 0
+
+
+##################################轉換任意結構化any_structure_pruned_model5_finetune_11epoch模型 onnx-->trt
+FP32
+sh samples/bevformer/small/onnx2trt_any_structure_prune.sh -d 0
+
+FP16
+sh samples/bevformer/small/onnx2trt_fp16_any_structure_prune.sh -d 0
+
+Int8+FP32
+sh samples/bevformer/small/onnx2trt_int8_any_structure_prune.sh -d 0
+
+Int8+FP16
+sh samples/bevformer/small/onnx2trt_int8_fp16_any_structure.sh -d 0
+
+
+###################################測試任意結構化any_structure_pruned_model5_finetune_11epoch模型
+FP32
+sh samples/bevformer/small/trt_evaluate_any_structure_prune.sh -d 0
+
+FP16
+sh samples/bevformer/small/trt_evaluate_fp16_any_structure_prune.sh -d 0
+
+Int8+FP32
+sh samples/bevformer/small/trt_evaluate_int8_any_structure_prune.sh -d 0
+
+Int8+FP16
+sh samples/bevformer/small/trt_evaluate_int8_fp16_any_structure_prune.sh -d 0
+
+

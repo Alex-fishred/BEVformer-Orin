@@ -1,0 +1,87 @@
+下載cudnn並安裝
+        sudo tar -xvf cudnn-linux-x86_64-8.6.0.163_cuda11-archive.tar.xz
+        sudo cp /mnt/f/BEVFormer_tensorrt-main2/cudnn-linux-x86_64-8.6.0.163_cuda11-archive/include/cudnn*.h /usr/local/cuda/include
+        sudo cp /mnt/f/BEVFormer_tensorrt-main2/cudnn-linux-x86_64-8.6.0.163_cuda11-archive/lib/libcudnn* /usr/local/cuda/lib64
+        sudo chmod a+r /usr/local/cuda/include/cudnn.h /usr/local/cuda/lib64/libcudnn*
+
+TensorrRT安裝 記得參考https://docs.nvidia.com/deeplearning/tensorrt/install-guide/index.html#installing-tar 這篇的tensorrt安裝法
+
+
+#Build TensorRT Plugins of MMDeploy 出錯換這個
+        cmake -DCMAKE_CXX_COMPILER=g++-7 -DCMAKE_CUDA_COMPILER= /usr/local/cuda/bin/nvcc -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda -DMMDEPLOY_TARGET_BACKENDS=trt 
+-DTENSORRT_DIR=${TENSORRT_DIR} -DCUDNN_DIR=${CUDNN_DIR} ..
+
+
+#Build and Install Custom TensorRT Plugins 出錯換這個
+        cmake .. -DCMAKE_TENSORRT_PATH=/mnt/f/BEVFormer_tensorrt-main2/TensorRT-8.5.1.7 -DCMAKE_CUDA_COMPILER="/usr/local/cuda/bin/nvcc" -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda
+
+
+如果找不到檔案複製下載的cudnn.h換這個指令(這個最上面應該就做過了，不應該使用到這個)
+        複製下載的cudnn.h檔案到usr/local/cuda/include
+                sudo cp -r /mnt/f/BEVFormer_tensorrt-main2/cudnn-linux-x86_64-8.6.0.163_cuda11-archive/include/* /usr/local/cuda/include
+        複製下載的tensorrt檔案到TensorRT的common
+                sudo cp -r /mnt/f/BEVFormer_tensorrt-main2/TensorRT-8.5.1.7/include/* /mnt/f/BEVFormer_tensorrt-main2/TensorRT/common
+
+
+當實作Build and Install Custom TensorRT Plugins的make -j$(nproc) 出現/usr/bin/ld: cannot find -lnvinfer 時，參考https://blog.csdn.net/qq_41375609/article/details/109972482
+        註解以下兩行
+        #link_directories(${CMAKE_TENSORRT_PATH}/lib)
+        #include_directories(${CMAKE_TENSORRT_PATH}/include)
+        替換成以下兩行
+        link_directories(/mnt/f/BEVFormer_tensorrt-main2/TensorRT-8.5.1.7/targets/x86_64-linux-gnu/lib/)
+        include_directories(/mnt/f/BEVFormer_tensorrt-main2/TensorRT-8.5.1.7/include/)
+
+
+ModuleNotFoundError: No module named 'numba'
+        pip install numba
+ModuleNotFoundError: No module named 'pyquaternion'
+        pip install pyquaternion
+ModuleNotFoundError: No module named 'nuscenes'
+        pip install nuscenes-devkit
+ModuleNotFoundError: No module named 'trimesh'
+        pip install trimesh
+
+
+解決甚麼沒定義符號ImportError:/cuda_ext.cpython-38-x86_64-linux-gnu.so: undefined symbol: _ZN3c106detail14torchCheckFailEPKcS2_jRKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
+pip install pytorch-quantization==2.1.3
+
+
+如果出現ImportError: cannot import name 'iou3d_cuda' from partially initialized module錯誤
+參考https://github.com/DerryHub/BEVFormer_tensorrt/issues/2
+        解法:
+        cd ${PROJECT_DIR}/third_party/bevformer
+        python setup.py build develop
+
+執行sh samples/test_trt_ops.sh 出現ERROR的話，參考https://github.com/DerryHub/BEVFormer_tensorrt/issues/47
+        就把Numpy版本降低到1.23.5
+        附註:這個會執行很久，請等待
+
+如果出現OSError: libnvinfer.so.8: cannot open shared object file: No such file or directory
+        分析:因為前面都用export，所以終端重開或重開機 軟連接失效
+        把上面步驟重做一次生出so檔就可以解決
+
+
+No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda-11.6'
+    改用終端機（ＣＭＤ）執行PYTHON檔案
+    把sh檔案指令打在終端機上
+
+
+In node 91 (importFallbackPluginImporter): UNSUPPORTED_NODE: Assertion failed: creator && "Plugin not found, are the plugin name, version, and namespace correct?"
+    可能與沒有.so檔有關
+    往上看執行訊息應該會看到 W0303 11:38:31.590394 140100313023680 init_plugins.py:38] Could not load the library of tensorrt plugins.             Because the file does not exist:
+    代表mmdelopy沒有.so檔案，
+    解法:重建購mmdelopy，指定好所有路徑後，記得把build資料夾刪除，以便重新生成libmmdeploy_tensorrt_ops.so
+    
+
+ImportError: libcudnn.so.8: cannot open shared object file: No such file or directory
+    解法:
+    (使用後會導致 cuda讀取錯誤)#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.6/lib64/
+    export LD_LIBRARY_PATH=/usr/local/cuda-11.6/lib64:${LD_LIBRARY_PATH}
+engine.create_execution_context() return none
+    延深錯誤:
+    [03/03/2024-14:51:38] [TRT] [E] 1: [raiiMyelinGraph.h::RAIIMyelinGraph::24] Error Code 1: Myelin (Compiled against cuBLASLt 11.9.2.0 but running against cuBLASLt 11.8.1.0.)
+
+ImportError: /home/alex/miniconda3/envs/bevformer_tensorrt_version2/lib/python3.8/site-packages/pycuda/_driver.cpython-38-x86_64-linux-gnu.so: undefined symbol: cuDevicePrimaryCtxRelease_v2
+    換一個cmd，不知道為甚麼 但torch.cuda.is_available() 結果會是True
+    或者
+    在pth2onnx.py最前面 加入 import pycuda.autoinit和import pycuda.driver as cuda

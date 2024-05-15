@@ -90,10 +90,3 @@ Many thanks to these excellent open source projects:
 - [detr3d](https://github.com/WangYueFt/detr3d) 
 - [mmdet3d](https://github.com/open-mmlab/mmdetection3d)
 
-
-### &#8627; Stargazers
-[![Stargazers repo roster for @nastyox/Repo-Roster](https://reporoster.com/stars/fundamentalvision/BEVFormer)](https://github.com/fundamentalvision/BEVFormer/stargazers)
-
-### &#8627; Forkers
-[![Forkers repo roster for @nastyox/Repo-Roster](https://reporoster.com/forks/fundamentalvision/BEVFormer)](https://github.com/fundamentalvision/BEVFormer/network/members)
-

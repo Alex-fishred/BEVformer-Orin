@@ -22,7 +22,7 @@ As autonomous driving technology continues to advance, the bird's-eye view offer
 
 
 # Methods
-![method](figs/arch.png "model arch")
+![本研究架構圖2](https://github.com/Alex-fishred/BEVformer-Orin/assets/76515591/3d55144c-2085-470e-a216-0f0b3bc44886)
 
 
 # Getting Started

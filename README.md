@@ -26,9 +26,9 @@ As autonomous driving technology continues to advance, the bird's-eye view offer
 
 
 # Getting Started
-- [Installation](docs/install.md) 
-- [Prepare Dataset](docs/prepare_dataset.md)
-- [Run and Eval](docs/getting_started.md)
+- [Installation](install.md) 
+- [Prepare Dataset](prepare_dataset.md)
+- [Run and Eval](getting_started.md)
 
 # Model Zoo
 

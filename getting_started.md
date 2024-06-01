@@ -17,9 +17,7 @@ Note: using 1 GPU to eval can obtain slightly higher performance because continu
 
 
 
-# Using FP16 to train the model.
-The above training script can not support FP16 training, 
-and we provide another script to train BEVFormer with FP16.
+# Using TensorRT to evaluate the model.
 
 ```
 ./tools/fp16/dist_train.sh ./projects/configs/bevformer_fp16/bevformer_tiny_fp16.py 8
@@ -28,4 +26,4 @@ and we provide another script to train BEVFormer with FP16.
 
 # Visualization 
 
-see [visual.py](../tools/analysis_tools/visual.py)
+see [visual.py](./tools/bevformer/evaluate_trt_show_predet.py)

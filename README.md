@@ -18,11 +18,11 @@ https://github.com/Alex-fishred/BEVformer-Orin/assets/76515591/eb17a585-99c4-469
 
 
 # Abstract
-As autonomous driving technology continues to advance, the bird's-eye view offers an intuitive representation of the environment for autonomous vehicles, aiding in the enhancement of their decision-making capabilities. However, BEV detection systems require significant computational resources, making implementation on embedded platforms challenging. This study aims to optimize existing BEV detection models using pruning and quantization techniques to achieve a BEV detection system on the NVIDIA Orin platform. Experimental results show that when the model is deployed on the Orin single GPU embedded platform, the inference speed of the original architecture model is 1.05 FPS, while the inference speed of the pruned and quantized model can reach 2.32 FPS, nearly a 120% increase in speed. This study successfully lightens the BEV detection model through pruning and quantization techniques, achieving implementation on the NVIDIA Orin platform and improving inference speed.
+
 
 
 # Methods
-![本研究架構圖2](https://github.com/Alex-fishred/BEVformer-Orin/assets/76515591/3d55144c-2085-470e-a216-0f0b3bc44886)
+![本研究架構圖2]
 
 
 # Getting Started
